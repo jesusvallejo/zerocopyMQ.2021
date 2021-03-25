@@ -15,16 +15,16 @@ int main(int argc, char *argv[]) {
 
 	if (argc!=2) {
 		fprintf(stderr, "Uso: %s puerto\n", argv[0]);
-		return 1;
+		return -1;
 	}
 	if ((s=socket(PF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0) {
 		perror("error creando socket");
-		return 1;
+		return -1;
 	}
 	/* Para reutilizar puerto inmediatamente */
         if (setsockopt(s, SOL_SOCKET, SO_REUSEADDR, &opcion, sizeof(opcion))<0){
                 perror("error en setsockopt");
-                return 1;
+                return -1;
         }
 	dir.sin_addr.s_addr=INADDR_ANY;
 	dir.sin_port=htons(atoi(argv[1]));
@@ -32,12 +32,12 @@ int main(int argc, char *argv[]) {
 	if (bind(s, (struct sockaddr *)&dir, sizeof(dir)) < 0) {
 		perror("error en bind");
 		close(s);
-		return 1;
+		return -1;
 	}
 	if (listen(s, 5) < 0) {
 		perror("error en listen");
 		close(s);
-		return 1;
+		return -1;
 	}
 
 	struct diccionario *dic;
@@ -48,7 +48,7 @@ int main(int argc, char *argv[]) {
 		if ((s_conec=accept(s, (struct sockaddr *)&dir_cliente, &tam_dir))<0){
 			perror("error en accept");
 			close(s);
-			return 1;
+			return -1;
 		}
 
 		/* memory allocation for the needed buffers*/
@@ -60,7 +60,7 @@ int main(int argc, char *argv[]) {
 			perror("error: Could not read type of operation");
 			close(s);
 			close(s_conec);
-			return 1;
+			return -1;
 		}
 
 
@@ -78,11 +78,6 @@ int main(int argc, char *argv[]) {
 		*/
 
 		
-		
-  
-
-	   		   	
-
 		switch(type){
 
 			case 0: // createMQ
@@ -90,26 +85,26 @@ int main(int argc, char *argv[]) {
 				uint8_t qSize;
 				uint8_t i=0;
 				leido=recv(s_conec,&qSize,sizeof(uint8_t),0);
-				printf("Size of queue: %d\n",qSize);
+				//printf("Size of queue: %d\n",qSize);
 
 				if (leido<0) { // to be subtituted with a function to reduce size of code
 					perror("error: Could not read the size of the queue");
 					close(s);
 					close(s_conec);
-					return 1;
+					return -1;
 				}
 
 				// now that we know the size of the queue we can allocate memory for it
 				char * nombre_cola;
 				nombre_cola = (char *) malloc(qSize);
 				leido=recv(s_conec,nombre_cola,sizeof(nombre_cola),0);
-				printf("Queue Name: %s\n",nombre_cola);
+				//printf("Queue Name: %s\n",nombre_cola);
 
 				if (leido<0) {// to be subtituted with a function to reduce size of code
 					perror("error: Could not read the queue name");
 					close(s);
 					close(s_conec);
-					return 1;
+					return -1;
 				}
 				struct cola *cola;
 				cola = cola_create();
@@ -136,26 +131,26 @@ int main(int argc, char *argv[]) {
 				int error;
 				uint8_t i=0;
 				leido=recv(s_conec,&qSize,sizeof(uint8_t),0);
-				printf("Size of queue: %d\n",qSize);
+				//printf("Size of queue: %d\n",qSize);
 
 				if (leido<0) {// to be subtituted with a function to reduce size of code
 					perror("error: Could not read the size of the queue");
 					close(s);
 					close(s_conec);
-					return 1;
+					return -1;
 				}
 
 				// now that we know the size of the queue we can allocate memory for it
 				char * nombre_cola;
 				nombre_cola = (char *) malloc(qSize);
 				leido=recv(s_conec,nombre_cola,sizeof(nombre_cola),0);
-				printf("Queue Name: %s\n",nombre_cola);
+				//printf("Queue Name: %s\n",nombre_cola);
 
 				if (leido<0) {// to be subtituted with a function to reduce size of code
 					perror("error: Could not read the queue name");
 					close(s);
 					close(s_conec);
-					return 1;
+					return -1;
 				}
 
 				// proceed to look for the queue on the dict with name
@@ -229,9 +224,6 @@ int main(int argc, char *argv[]) {
 				perror("error: Unknow type");
 		}
 		
-
-
-
 		/*
 		leido=read(s_conec, buf, TAM);
 			printf("prueba:%s\n",&buf[1]);
