@@ -7,8 +7,6 @@
 #include "diccionario.h"
 
 
-
-
 int main(int argc, char *argv[]) {
 	int s, s_conec, leido;
 	unsigned int tam_dir;
@@ -94,7 +92,7 @@ int main(int argc, char *argv[]) {
 				leido=recv(s_conec,&qSize,sizeof(uint8_t),0);
 				printf("Size of queue: %d\n",qSize);
 
-				if (leido<0) {
+				if (leido<0) { // to be subtituted with a function to reduce size of code
 					perror("error: Could not read the size of the queue");
 					close(s);
 					close(s_conec);
@@ -107,7 +105,7 @@ int main(int argc, char *argv[]) {
 				leido=recv(s_conec,nombre_cola,sizeof(nombre_cola),0);
 				printf("Queue Name: %s\n",nombre_cola);
 
-				if (leido<0) {
+				if (leido<0) {// to be subtituted with a function to reduce size of code
 					perror("error: Could not read the queue name");
 					close(s);
 					close(s_conec);
@@ -127,7 +125,7 @@ int main(int argc, char *argv[]) {
 				printf("Nombre_cola:%s , ",nombre_cola);
 				printf("Tamaño:%d\n",qSize);
 				// Send 0 to client: Success!
-				if (write(s_conec, &i, sizeof(i))<0){
+				if (write(s_conec, &i, sizeof(i))<0){// to be subtituted with a function to reduce size of code
         			printf("Caca de la buena,el broker no ha podido devolver el ok\n");
         		}
         		break;
@@ -140,7 +138,7 @@ int main(int argc, char *argv[]) {
 				leido=recv(s_conec,&qSize,sizeof(uint8_t),0);
 				printf("Size of queue: %d\n",qSize);
 
-				if (leido<0) {
+				if (leido<0) {// to be subtituted with a function to reduce size of code
 					perror("error: Could not read the size of the queue");
 					close(s);
 					close(s_conec);
@@ -153,7 +151,7 @@ int main(int argc, char *argv[]) {
 				leido=recv(s_conec,nombre_cola,sizeof(nombre_cola),0);
 				printf("Queue Name: %s\n",nombre_cola);
 
-				if (leido<0) {
+				if (leido<0) {// to be subtituted with a function to reduce size of code
 					perror("error: Could not read the queue name");
 					close(s);
 					close(s_conec);
@@ -164,7 +162,7 @@ int main(int argc, char *argv[]) {
 				struct cola *cola;
 				cola = dic_get(dic, nombre_cola, &error);
 
-				if (error < 0){
+				if (error < 0){// to be subtituted with a function to reduce size of code
         			perror("error: No se encontro la cola en el diccionario");
         			// Send -1 to client: Failed!
         			//return -1;
@@ -173,7 +171,7 @@ int main(int argc, char *argv[]) {
         			break;
 				}
 				// destroy the queue found on the dict
-				if(cola_destroy(cola, NULL)<0){
+				if(cola_destroy(cola, NULL)<0){// to be subtituted with a function to reduce size of code
 					perror("error: La cola no exite en la queue\n");
         			// Send -1 to client: Failed!
         			//return -1;
@@ -182,7 +180,7 @@ int main(int argc, char *argv[]) {
         			break;
 				}
 				// remove from the dict the queue name
-				if (dic_remove_entry(dic, nombre_cola, NULL) < 0){
+				if (dic_remove_entry(dic, nombre_cola, NULL) < 0){// to be subtituted with a function to reduce size of code
         			perror("error: La cola no exite en el diccionario\n");
         			// Send -1 to client: Failed!
         			//return -1;
