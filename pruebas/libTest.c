@@ -10,16 +10,15 @@
 #include <sys/uio.h>
 #include "libTest.h"
 
-#define TAM 1024
  int s; // socket connection 
 
 int createMQ(const char *cola) {
 
     ssize_t bytes_written;
-	int fd;
+	
 	int iovcnt;
     struct iovec iov [3];
-    char buf[TAM];
+    
  
 
  	uint8_t type =0;
@@ -65,13 +64,13 @@ int createMQ(const char *cola) {
     }
     int leido;
 	
-
-    if ((leido=read(s, buf, TAM))<0) {
+    uint8_t reply;
+    if ((leido=read(s, &reply, sizeof(reply)))<0) {
             perror("error en read");
             close(s);
             return -1;
     }
-    if (buf[0]==0){
+    if (reply==0){
     printf("++ createMQ ++ - Returned 0 - OK\n");
     return -1;
 	}
@@ -83,10 +82,9 @@ int createMQ(const char *cola) {
 
 int destroyMQ(const char *cola){
     ssize_t bytes_written;
-	int fd;
+	
 	int iovcnt;
     struct iovec iov [3];
-    char buf[TAM];
  
 
  	uint8_t type =1;
@@ -132,13 +130,13 @@ int destroyMQ(const char *cola){
     }
     int leido;
 	
-
-    if ((leido=read(s, buf, TAM))<0) {
+	uint8_t reply;
+    if ((leido=read(s, &reply, sizeof(reply)))<0) {
             perror("error en read");
             close(s);
             return 1;
     }
-    if (buf[0]==0)
+    if (reply==0)
     	printf("++ deleteMQ ++ - Returned 0 - OK\n");
     else
     	printf("++ deleteMQ ++ - Returned != 0 - NO OK\n");
@@ -151,7 +149,7 @@ int destroyMQ(const char *cola){
 int put(const char *cola, const void *mensaje, uint32_t tam) {
 
     ssize_t bytes_written;
-	int fd;
+	
 	int iovcnt;
     struct iovec iov [5];
 
@@ -205,11 +203,11 @@ int put(const char *cola, const void *mensaje, uint32_t tam) {
 }
 
 
-/*
+
 int get(const char *cola, void **mensaje, uint32_t *tam, bool blocking) {
     return 0;
 }
-*/
+
 int brokerSetup(){
 	struct sockaddr_in dir;
 	struct hostent *host_info;
@@ -242,9 +240,8 @@ int brokerSetup(){
 
 int main(int argc, char * argv[]){
 	createMQ("ppp");
-	destroyMQ("ppp");
-	destroyMQ("ppp");
-	//put("ooo","1234567890",strlen("1234567890"));
+	void * msg = {01010101101010}
+	put("ppp",msg,sizeof(msg));
 	close(s);
 	return 0;
 }

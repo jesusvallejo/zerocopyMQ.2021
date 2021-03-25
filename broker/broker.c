@@ -84,7 +84,7 @@ int main(int argc, char *argv[]) {
 				{
 				uint8_t qSize;
 				uint8_t i=0;
-				leido=recv(s_conec,&qSize,sizeof(uint8_t),0);
+				leido=recv(s_conec,&qSize,sizeof(qSize),0);
 				//printf("Size of queue: %d\n",qSize);
 
 				if (leido<0) { // to be subtituted with a function to reduce size of code
@@ -130,7 +130,7 @@ int main(int argc, char *argv[]) {
 				uint8_t qSize;
 				int error;
 				uint8_t i=0;
-				leido=recv(s_conec,&qSize,sizeof(uint8_t),0);
+				leido=recv(s_conec,&qSize,sizeof(qSize),0);
 				//printf("Size of queue: %d\n",qSize);
 
 				if (leido<0) {// to be subtituted with a function to reduce size of code
@@ -194,22 +194,47 @@ int main(int argc, char *argv[]) {
         		}
         		break;
         	}
-        	/*
+        	
 			case 2: // put
 			{
-				uint8_t msgSize;
-	   			char * msg;
-				printf("put ");
-				qSize = buf[1];
-				printf("size cola%d\n",qSize);
-				msgSize = buf[2];
+				//int error;
+				//uint8_t i=0;
+
+				uint8_t qSize;
+				leido=recv(s_conec,&qSize,sizeof(qSize),0);
+				if (leido<0) {// to be subtituted with a function to reduce size of code
+					perror("error: Could not read the size of the queue");
+					close(s);
+					close(s_conec);
+					return -1;
+				}
+
+				uint32_t msgSize;
+				leido=recv(s_conec,&msgSize,sizeof(msgSize),0);
+				if (leido<0) {// to be subtituted with a function to reduce size of code
+					perror("error: Could not read the size of the message");
+					close(s);
+					close(s_conec);
+					return -1;
+				}
+
+				// now that we know the size of the queue we can allocate memory for it
+				char * nombre_cola;
+				nombre_cola = (char *) malloc(qSize);
+				leido=recv(s_conec,nombre_cola,sizeof(nombre_cola),0);
+
+				// now that we know the size of the message we can allocate memory for it
+				void * msg;
+				msg = (void *) malloc(msgSize);
+				leido=recv(s_conec,msg,sizeof(msg),0);
+
+				printf("size cola:%d\n",qSize);
 				printf("size mensaje:%d\n",msgSize);
-				nombre_cola = &buf[3];
-				msg = &buf[qSize+3];
-				printf("nombre_cola:%s,",nombre_cola);
-				printf("mensaje:%s\n",msg);
+				printf("nombre_cola:%s\n",nombre_cola);
+				printf("mensaje:%d\n",*(uint8_t *)msg);
 				break;
 			}
+			/*
 			case 3: // get
 				//qSize = buf[1];
 				//uint8_t msgSize = buf[2];
