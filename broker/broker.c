@@ -89,7 +89,7 @@ int main(int argc, char *argv[]) {
 
 			case 0: // createMQ
 				{
-				uint8_t qSize;
+				uint16_t qSize;
 				uint8_t i=0;
 				leido=recv(s_conec,&qSize,sizeof(qSize),0);
 				//printf("Size of queue: %d\n",qSize);
@@ -104,7 +104,7 @@ int main(int argc, char *argv[]) {
 				// now that we know the size of the queue we can allocate memory for it
 				char * nombre_cola;
 				nombre_cola = (char *) malloc(qSize);
-				leido=recv(s_conec,nombre_cola,sizeof(nombre_cola),0);
+				leido=recv(s_conec,nombre_cola,qSize*sizeof(char),0);
 				//printf("Queue Name: %s\n",nombre_cola);
 
 				if (leido<0) {// to be subtituted with a function to reduce size of code
@@ -134,7 +134,7 @@ int main(int argc, char *argv[]) {
         	}
 			case 1: // destroyMQ
 				{
-				uint8_t qSize;
+				uint16_t qSize;
 				int error;
 				uint8_t i=0;
 				leido=recv(s_conec,&qSize,sizeof(qSize),0);
@@ -150,7 +150,7 @@ int main(int argc, char *argv[]) {
 				// now that we know the size of the queue we can allocate memory for it
 				char * nombre_cola;
 				nombre_cola = (char *) malloc(qSize);
-				leido=recv(s_conec,nombre_cola,sizeof(nombre_cola),0);
+				leido=recv(s_conec,nombre_cola,qSize*sizeof(char),0);
 				//printf("Queue Name: %s\n",nombre_cola);
 
 				if (leido<0) {// to be subtituted with a function to reduce size of code
@@ -207,7 +207,7 @@ int main(int argc, char *argv[]) {
 				int error;
 				uint8_t i=0;
 
-				uint8_t qSize;
+				uint16_t qSize;
 				leido=recv(s_conec,&qSize,sizeof(qSize),0);
 				if (leido<0) {// to be subtituted with a function to reduce size of code
 					perror("error: Could not read the size of the queue");
@@ -228,12 +228,12 @@ int main(int argc, char *argv[]) {
 				// now that we know the size of the queue we can allocate memory for it
 				char * nombre_cola;
 				nombre_cola = (char *) malloc(qSize);
-				leido=recv(s_conec,nombre_cola,sizeof(nombre_cola),0);
+				leido=recv(s_conec,nombre_cola,qSize*sizeof(char),0);
 
 				// now that we know the size of the message we can allocate memory for it
 				void * msg;
 				msg = (void *) malloc(msgSize);
-				leido=recv(s_conec,msg,sizeof(msg),0);
+				leido=recv(s_conec,msg,msgSize*sizeof(void),0);
 
 				struct pack * p;
 				p = malloc(sizeof(struct pack));

@@ -25,7 +25,7 @@ int createMQ(const char *cola) {
  
 
  	uint8_t type =0;
-	uint8_t qSize=strlen(cola)+1;
+	uint16_t qSize=strlen(cola)+1;
 	//uint8_t msgSize=strlen(msg)+1;
 	
 	iov[0].iov_base = &type;
@@ -66,7 +66,6 @@ int createMQ(const char *cola) {
         return -1;
     }
     int leido;
-	
     uint8_t reply;
     if ((leido=read(s, &reply, sizeof(reply)))<0) {
             perror("error en read");
@@ -92,7 +91,7 @@ int destroyMQ(const char *cola){
     int returned;
 
  	uint8_t type =1;
-	uint8_t qSize=strlen(cola)+1;
+	uint16_t qSize=strlen(cola)+1;
 	//uint8_t msgSize=strlen(msg)+1;
 	
 	iov[0].iov_base = &type;
@@ -133,7 +132,6 @@ int destroyMQ(const char *cola){
         return 1;
     }
     int leido;
-	
 	uint8_t reply;
     if ((leido=read(s, &reply, sizeof(reply)))<0) {
             perror("error en read");
@@ -159,13 +157,10 @@ int put(const char *cola, const void *mensaje, uint32_t tam) {
     ssize_t bytes_written;
 	int iovcnt;
     struct iovec iov [5];
-
-    
+    int returned;
 
  	uint8_t type =2;
-	uint8_t qSize=strlen(cola)+1;
-	/* esto es incorrecto como dice el enunciado ya que son de tipo binario*/
-	uint8_t msgSize=strlen(mensaje)+1;
+	uint16_t qSize=strlen(cola)+1;
 	
 	iov[0].iov_base = &type;
 	iov[0].iov_len = sizeof(type);
@@ -177,10 +172,10 @@ int put(const char *cola, const void *mensaje, uint32_t tam) {
 	iov[2].iov_len = sizeof(tam);
 
 	iov[3].iov_base = cola;
-	iov[3].iov_len = sizeof(cola);
+	iov[3].iov_len = sizeof(char)*qSize;
 
 	iov[4].iov_base = mensaje;
-	iov[4].iov_len = sizeof(mensaje);
+	iov[4].iov_len = sizeof(void)*tam;
 
 
 	iovcnt = sizeof(iov) / sizeof(struct iovec);
@@ -198,14 +193,30 @@ int put(const char *cola, const void *mensaje, uint32_t tam) {
         return 1;
     }
     */
-	printf("sending on queue:%s,with size:%d,message:%s,with size:%d\n",cola,qSize,(char *)mensaje,tam);
     bytes_written= writev(s, iov, iovcnt);
     if (bytes_written<0) {
-        perror("error en write");
+        perror("error en write put");
         return 1;
     }
+  	int leido;
+    uint8_t reply;
+    if ((leido=read(s, &reply, sizeof(reply)))<0) {
+            perror("error en read put");
+            close(s);
+            return 1;
+    }
+    if (reply==0){
+    	printf("++ Put ++ - Returned 0 - OK\n");
+    
+    returned = 0;
+	}
+    else{
+    	printf("++ Put ++ - Returned != 0 - NO OK\n");
+    	returned = -1;
+    }
+
     close(s);
-    return 0;
+	return returned;
 }
 
 

@@ -12,6 +12,6 @@
 int main(int argc, char * argv[]){
     createMQ("ppp");
     int  msg = 7;
-    put("ppp",&msg,4);
+    put("ppp",&msg,sizeof(msg));
     return 0;
 }
