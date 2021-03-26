@@ -21,7 +21,7 @@ int createMQ(const char *cola) {
     ssize_t bytes_written;
 	int iovcnt;
     struct iovec iov [3];
-    
+    int returned;
  
 
  	uint8_t type =0;
@@ -75,19 +75,21 @@ int createMQ(const char *cola) {
     }
     if (reply==0){
     printf("++ createMQ ++ - Returned 0 - OK\n");
-    return -1;
+    returned =  0;
 	}
     else{
     printf("++ createMQ ++ - Returned != 0 - NO OK\n");
-    return 0;
+    returned = -1;
 }
+close(s);
+return returned;
 }
 
 int destroyMQ(const char *cola){
     ssize_t bytes_written;
 	int iovcnt;
     struct iovec iov [3];
-    
+    int returned;
 
  	uint8_t type =1;
 	uint8_t qSize=strlen(cola)+1;
@@ -138,15 +140,20 @@ int destroyMQ(const char *cola){
             close(s);
             return 1;
     }
-    if (reply==0)
+    if (reply==0){
     	printf("++ deleteMQ ++ - Returned 0 - OK\n");
-    else
+    
+    returned = 0;
+	}
+    else{
     	printf("++ deleteMQ ++ - Returned != 0 - NO OK\n");
+    	returned = -1;
+    }
 
     close(s);
-    return 0;
+	return returned;
+    
 }
-
 
 int put(const char *cola, const void *mensaje, uint32_t tam) {
     ssize_t bytes_written;
