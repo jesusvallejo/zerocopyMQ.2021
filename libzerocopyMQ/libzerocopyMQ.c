@@ -165,7 +165,7 @@ int put(const char *cola, const void *mensaje, uint32_t tam) {
  	uint8_t type =2;
 	uint8_t qSize=strlen(cola)+1;
 	/* esto es incorrecto como dice el enunciado ya que son de tipo binario*/
-	//uint8_t msgSize=strlen(mensaje)+1;
+	uint8_t msgSize=strlen(mensaje)+1;
 	
 	iov[0].iov_base = &type;
 	iov[0].iov_len = sizeof(type);
@@ -177,11 +177,10 @@ int put(const char *cola, const void *mensaje, uint32_t tam) {
 	iov[2].iov_len = sizeof(tam);
 
 	iov[3].iov_base = cola;
-	iov[3].iov_len = qSize;
+	iov[3].iov_len = sizeof(cola);
 
 	iov[4].iov_base = mensaje;
-	//iov[4].iov_len = msgSize;
-	iov[4].iov_len = tam;
+	iov[4].iov_len = sizeof(mensaje);
 
 
 	iovcnt = sizeof(iov) / sizeof(struct iovec);
@@ -199,7 +198,7 @@ int put(const char *cola, const void *mensaje, uint32_t tam) {
         return 1;
     }
     */
-
+	printf("sending on queue:%s,with size:%d,message:%s,with size:%d\n",cola,qSize,(char *)mensaje,tam);
     bytes_written= writev(s, iov, iovcnt);
     if (bytes_written<0) {
         perror("error en write");

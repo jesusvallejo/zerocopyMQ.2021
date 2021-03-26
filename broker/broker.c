@@ -6,7 +6,14 @@
 #include "cola.h"
 #include "diccionario.h"
 
-
+struct pack {
+    void * msg;
+    uint32_t tam;
+};
+void imprime(void *v) {
+    struct pack *p = v;
+    printf("pack: (%d,%d)\n",*(int *) p->msg, p->tam);
+}
 int main(int argc, char *argv[]) {
 	int s, s_conec, leido;
 	unsigned int tam_dir;
@@ -197,8 +204,8 @@ int main(int argc, char *argv[]) {
         	
 			case 2: // put
 			{
-				//int error;
-				//uint8_t i=0;
+				int error;
+				uint8_t i=0;
 
 				uint8_t qSize;
 				leido=recv(s_conec,&qSize,sizeof(qSize),0);
@@ -228,10 +235,45 @@ int main(int argc, char *argv[]) {
 				msg = (void *) malloc(msgSize);
 				leido=recv(s_conec,msg,sizeof(msg),0);
 
+				struct pack * p;
+				p = malloc(sizeof(struct pack));
+				p->msg = msg;
+				p->tam = msgSize;
+
+
+
 				printf("size cola:%d\n",qSize);
 				printf("size mensaje:%d\n",msgSize);
 				printf("nombre_cola:%s\n",nombre_cola);
-				printf("mensaje:%d\n",*(uint8_t *)msg);
+				printf("mensaje:%d\n",*(int *)msg);
+
+				//check if message is empty
+					if (msgSize ==0){
+						 // mensaje vacio, tamaño 0 - OK
+						i=0;
+        				send(s_conec, &i, sizeof(i), 0);
+        				break;
+					}
+
+				// check if queue exists
+				// proceed to look for the queue on the dict with name
+				struct cola *cola;
+				cola = dic_get(dic, nombre_cola, &error);
+
+				if (error < 0){// to be subtituted with a function to reduce size of code
+        			perror("error: No se encontro la cola en el diccionario");
+        			// Send -1 to client: Failed!
+        			//return -1;
+        			i=-1;
+        			send(s_conec, &i, sizeof(i), 0);
+        			break;
+				}
+
+				cola_push_back(cola,p);
+				//cola_visit(cola, imprime);
+				i=0;
+        		send(s_conec, &i, sizeof(i), 0);
+
 				break;
 			}
 			/*
