@@ -322,6 +322,7 @@ int main(int argc, char *argv[]) {
 				struct pack * p;
 				p = cola_pop_front(cola,&error);
 				if(error<0){
+						printf("no esta en la cola\n");
 						ssize_t bytes_written;
 						int iovcnt;
    						struct iovec iov [1];
@@ -340,6 +341,7 @@ int main(int argc, char *argv[]) {
 						close(s_conec);
         				return 1;
     					}
+    					break;
 				}
 			
 
