@@ -99,7 +99,7 @@ int main(int argc, char *argv[]) {
 					perror("error: Could not read the size of the queue");
 					close(s);
 					close(s_conec);
-					return -1;
+					break;
 				}
 
 				// now that we know the size of the queue we can allocate memory for it
@@ -117,16 +117,16 @@ int main(int argc, char *argv[]) {
 				struct cola *cola;
 				cola = cola_create();
 				if(dic_put(dic,nombre_cola,cola) < 0){
-        			perror("error: La cola ya exite\n");
+        			perror("error: La cola ya existe\n");
         			// Send -1 to client: Failed!
         			//return -1;
         			i=-1;
-        			send(s, &i, sizeof(i), 0);
+        			send(s_conec, &i, sizeof(i), 0);
         			break;
         		}
-				printf("++ createMQ ++ - ");
-				printf("Nombre_cola:%s , ",nombre_cola);
-				printf("Tamaño:%d\n",qSize);
+				//printf("++ createMQ ++ - ");
+				//printf("Nombre_cola:%s , ",nombre_cola);
+				//printf("Tamaño:%d\n",qSize);
 				// Send 0 to client: Success!
 				if (write(s_conec, &i, sizeof(i))<0){// to be subtituted with a function to reduce size of code
         			printf("Caca de la buena,el broker no ha podido devolver el ok\n");
@@ -180,6 +180,7 @@ int main(int argc, char *argv[]) {
         			//return -1;
         			i=-1;
         			send(s_conec, &i, sizeof(i), 0);
+
         			break;
 				}
 				// remove from the dict the queue name
@@ -189,12 +190,13 @@ int main(int argc, char *argv[]) {
         			//return -1;
         			i=-1;
         			send(s_conec, &i, sizeof(i), 0);
+
         			break;
 				}
 
-				printf("++ destroyMQ ++ - ");
-				printf("Nombre_cola:%s , ",nombre_cola);
-				printf("Tamaño:%d\n",qSize);
+				//printf("++ destroyMQ ++ - ");
+				//printf("Nombre_cola:%s , ",nombre_cola);
+				//printf("Tamaño:%d\n",qSize);
         		// Send 0 to client: Success!
         		//return 0;
         		if (write(s_conec, &i, sizeof(i))<0){
@@ -241,12 +243,10 @@ int main(int argc, char *argv[]) {
 				p->msg = msg;
 				p->tam = msgSize;
 
-
-
-				printf("size cola:%d\n",qSize);
-				printf("size mensaje:%d\n",msgSize);
-				printf("nombre_cola:%s\n",nombre_cola);
-				printf("mensaje:%d\n",*(int *)msg);
+				//printf("size cola:%d\n",qSize);
+				//printf("size mensaje:%d\n",msgSize);
+				//printf("nombre_cola:%s\n",nombre_cola);
+				//printf("mensaje:%d\n",*(int *)msg);
 
 				//check if message is empty
 					if (msgSize ==0){
@@ -297,8 +297,8 @@ int main(int argc, char *argv[]) {
 				nombre_cola = (char *) malloc(qSize);
 				leido=recv(s_conec,nombre_cola,qSize*sizeof(char),0);
 
-				printf("size cola:%d\n",qSize);
-				printf("nombre_cola:%s\n",nombre_cola);
+				//printf("size cola:%d\n",qSize);
+				//printf("nombre_cola:%s\n",nombre_cola);
 
 				// check if queue exists
 				// proceed to look for the queue on the dict with name
@@ -311,6 +311,7 @@ int main(int argc, char *argv[]) {
         			//return -1;
         			i=-1;
         			send(s_conec, &i, sizeof(i), 0);
+
         			break;
 				}
 				// enviar si todo ok de momento o esta vacia o no existe 
@@ -320,6 +321,26 @@ int main(int argc, char *argv[]) {
 
 				struct pack * p;
 				p = cola_pop_front(cola,&error);
+				if(error<0){
+						ssize_t bytes_written;
+						int iovcnt;
+   						struct iovec iov [1];
+   						uint32_t empty = 0;
+
+   						iov[0].iov_base = &empty;
+						iov[0].iov_len = sizeof(empty);
+
+   						iovcnt = sizeof(iov) / sizeof(struct iovec);
+
+   						bytes_written= writev(s_conec, iov, iovcnt);
+
+    					if (bytes_written<0) {
+        				perror("error en write put");
+        				close(s);
+						close(s_conec);
+        				return 1;
+    					}
+				}
 			
 
 				ssize_t bytes_written;
@@ -338,11 +359,10 @@ int main(int argc, char *argv[]) {
    				bytes_written= writev(s_conec, iov, iovcnt);
     			if (bytes_written<0) {
         			perror("error en write put");
+        			close(s);
+					close(s_conec);
         			return 1;
     			}
-
-
-				
 
 				break;
 			}
@@ -358,6 +378,7 @@ int main(int argc, char *argv[]) {
 		
 		printf("cerrando conexion\n" );
 		close(s_conec);
+
 	}
 	close(s);
 	return 0;

@@ -73,11 +73,11 @@ int createMQ(const char *cola) {
             return -1;
     }
     if (reply==0){
-    printf("++ createMQ ++ - Returned 0 - OK\n");
+    //printf("++ createMQ ++ - Returned 0 - OK\n");
     returned =  0;
 	}
     else{
-    printf("++ createMQ ++ - Returned != 0 - NO OK\n");
+    //printf("++ createMQ ++ - Returned != 0 - NO OK\n");
     returned = -1;
 }
 close(s);
@@ -139,12 +139,11 @@ int destroyMQ(const char *cola){
             return 1;
     }
     if (reply==0){
-    	printf("++ deleteMQ ++ - Returned 0 - OK\n");
-    
-    returned = 0;
+    	//printf("++ deleteMQ ++ - Returned 0 - OK\n");
+    	returned = 0;
 	}
     else{
-    	printf("++ deleteMQ ++ - Returned != 0 - NO OK\n");
+    	//printf("++ deleteMQ ++ - Returned != 0 - NO OK\n");
     	returned = -1;
     }
 
@@ -206,12 +205,12 @@ int put(const char *cola, const void *mensaje, uint32_t tam) {
             return 1;
     }
     if (reply==0){
-    	printf("++ Put ++ - Returned 0 - OK\n");
+    	//printf("++ Put ++ - Returned 0 - OK\n");
     
-    returned = 0;
+    	returned = 0;
 	}
     else{
-    	printf("++ Put ++ - Returned != 0 - NO OK\n");
+    	//printf("++ Put ++ - Returned != 0 - NO OK\n");
     	returned = -1;
     }
 
@@ -266,16 +265,18 @@ int get(const char *cola, void **mensaje, uint32_t *tam, bool blocking) {
     leido=recv(s,&correcto,sizeof(correcto),0);
     
     if (leido<0) {// to be subtituted with a function to reduce size of code
-					perror("error: Could not read the size of the queue");
+					perror("error: Could not read if there is a queue with that name");
 					close(s);
 					return -1;
 	}
+
+
 	if (correcto<0){
-		printf("problemas, no se ha encontrado la cola o no quedan mensajes \n");// hay que cambiarlo para diferenciar 
+		perror("problemas, no se ha encontrado la cola o no quedan mensajes\n");// hay que cambiarlo para diferenciar
+		close(s);
+		return -1;
 	}
-	else{
-		printf("cola encontrada y hay mensajes\n" );
-	}
+
 
 
    
@@ -287,18 +288,28 @@ int get(const char *cola, void **mensaje, uint32_t *tam, bool blocking) {
 					close(s);
 					return -1;
 	}
-	printf("size mensaje segun llega:%u\n",msgSize);
-	tam = &msgSize;
+	if(msgSize == 0){
+		if (!blocking)
+			return 0;
+		else
+			return -1;
+	}
+	* tam = msgSize; //  creo que mal porque estoy copiando los datos
 	// now that we know the size of the message we can allocate memory for it
 	void * msg;
 	msg = (void *) malloc(msgSize);
 	leido=recv(s,msg,msgSize*sizeof(void),0);
-	mensaje = &msg;
 
-	printf("size mensaje:%u\n",*tam);
-	printf("mensaje:%d\n",*(int *)msg);
+	if (leido<0) {// to be subtituted with a function to reduce size of code
+					perror("error: Could not read the size of the queue");
+					close(s);
+					return -1;
+	}
+	* mensaje = msg; //  creo que mal porque estoy copiando los datos
 
 
+	printf("size mensaje en libreria:%u\n",*tam);
+	printf("mensaje en libreria:%d\n",*(int *)*mensaje);
 
     return 0;
 }
