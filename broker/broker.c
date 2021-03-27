@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <sys/uio.h>
 #include "cola.h"
 #include "diccionario.h"
 
@@ -276,17 +277,76 @@ int main(int argc, char *argv[]) {
 
 				break;
 			}
-			/*
+			
 			case 3: // get
-				//qSize = buf[1];
-				//uint8_t msgSize = buf[2];
-				//char * nombre_cola = &buf[3];
-				//char * nombre_cola = &buf[4];
+			{
+				int error;
+				uint8_t i=0;
 				printf("get ");
-				//printf("nombre_cola:%s ",nombre_cola);
-				//printf("mensaje:%s\n",mensaje);
+				uint16_t qSize;
+				leido=recv(s_conec,&qSize,sizeof(qSize),0);
+				if (leido<0) {// to be subtituted with a function to reduce size of code
+					perror("error: Could not read the size of the queue");
+					close(s);
+					close(s_conec);
+					return -1;
+				}
+
+				// now that we know the size of the queue we can allocate memory for it
+				char * nombre_cola;
+				nombre_cola = (char *) malloc(qSize);
+				leido=recv(s_conec,nombre_cola,qSize*sizeof(char),0);
+
+				printf("size cola:%d\n",qSize);
+				printf("nombre_cola:%s\n",nombre_cola);
+
+				// check if queue exists
+				// proceed to look for the queue on the dict with name
+				struct cola *cola;
+				cola = dic_get(dic, nombre_cola, &error);
+
+				if (error < 0){// to be subtituted with a function to reduce size of code
+        			perror("error: No se encontro la cola en el diccionario");
+        			// Send -1 to client: Failed!
+        			//return -1;
+        			i=-1;
+        			send(s_conec, &i, sizeof(i), 0);
+        			break;
+				}
+				// enviar si todo ok de momento o esta vacia o no existe 
+				i=0;
+				send(s_conec, &i, sizeof(i), 0);
+				// todo ok, enviar el mensaje y tamanio
+
+				struct pack * p;
+				p = cola_pop_front(cola,&error);
+			
+
+				ssize_t bytes_written;
+				int iovcnt;
+   				struct iovec iov [2];
+   				
+
+   				iov[0].iov_base = &p->tam;
+				iov[0].iov_len = sizeof(p->tam);
+   				
+   				iov[1].iov_base = p -> msg;
+   				iov[1].iov_len = sizeof(void)*(p->tam);
+
+   				iovcnt = sizeof(iov) / sizeof(struct iovec);
+
+   				bytes_written= writev(s_conec, iov, iovcnt);
+    			if (bytes_written<0) {
+        			perror("error en write put");
+        			return 1;
+    			}
+
+
+				
+
 				break;
-				*/
+			}
+				
 			default:
 				perror("error: Unknow type");
 		}

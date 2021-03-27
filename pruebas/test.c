@@ -10,8 +10,16 @@
 
  
 int main(int argc, char * argv[]){
-    createMQ("ppp");
-    int  msg = 7;
-    put("ppp",&msg,sizeof(msg));
+	char * cola = "ppp";
+	int  msg = 7;
+	void **rmsg;
+	uint32_t *rtam;
+	bool blocking = false;
+	
+    createMQ(cola);
+    
+    put(cola,&msg,sizeof(msg));
+
+    get(cola,rmsg,rtam,blocking);
     return 0;
 }

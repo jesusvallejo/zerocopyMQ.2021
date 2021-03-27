@@ -181,7 +181,7 @@ int put(const char *cola, const void *mensaje, uint32_t tam) {
 	iovcnt = sizeof(iov) / sizeof(struct iovec);
 	
 	if(brokerSetup()!=0){
-		perror("error: createMQ");
+		perror("error: put");
 		return 1;
 	}
 
@@ -222,6 +222,84 @@ int put(const char *cola, const void *mensaje, uint32_t tam) {
 
 
 int get(const char *cola, void **mensaje, uint32_t *tam, bool blocking) {
+	ssize_t bytes_written;
+	int iovcnt;
+    struct iovec iov [3];
+    //int returned;
+
+ 	uint8_t type = 3;
+	uint16_t qSize=strlen(cola)+1;
+	
+	iov[0].iov_base = &type;
+	iov[0].iov_len = sizeof(type);
+
+	iov[1].iov_base = &qSize;
+	iov[1].iov_len = sizeof(qSize);
+
+	iov[2].iov_base = cola;
+	iov[2].iov_len = sizeof(char)*qSize;
+
+
+	iovcnt = sizeof(iov) / sizeof(struct iovec);
+	
+	if(brokerSetup()!=0){
+		perror("error: put");
+		return 1;
+	}
+
+	/* Understanding that the queue struct is set send it, 
+	we need to change it to writev for the zerocopy  
+
+    if (write(s, cola, strlen(cola)+1)<0) {
+        perror("error en write");
+        return 1;
+    }
+    */
+    bytes_written= writev(s, iov, iovcnt);
+    if (bytes_written<0) {
+        perror("error en write put");
+        return 1;
+    }
+    // existe?
+    int leido;
+    uint8_t correcto;
+    leido=recv(s,&correcto,sizeof(correcto),0);
+    
+    if (leido<0) {// to be subtituted with a function to reduce size of code
+					perror("error: Could not read the size of the queue");
+					close(s);
+					return -1;
+	}
+	if (correcto<0){
+		printf("problemas, no se ha encontrado la cola o no quedan mensajes \n");// hay que cambiarlo para diferenciar 
+	}
+	else{
+		printf("cola encontrada y hay mensajes\n" );
+	}
+
+
+   
+    uint32_t msgSize;
+    leido=recv(s,&msgSize,sizeof(msgSize),0);
+
+    if (leido<0) {// to be subtituted with a function to reduce size of code
+					perror("error: Could not read the size of the queue");
+					close(s);
+					return -1;
+	}
+	printf("size mensaje segun llega:%u\n",msgSize);
+	tam = &msgSize;
+	// now that we know the size of the message we can allocate memory for it
+	void * msg;
+	msg = (void *) malloc(msgSize);
+	leido=recv(s,msg,msgSize*sizeof(void),0);
+	mensaje = &msg;
+
+	printf("size mensaje:%u\n",*tam);
+	printf("mensaje:%d\n",*(int *)msg);
+
+
+
     return 0;
 }
 
