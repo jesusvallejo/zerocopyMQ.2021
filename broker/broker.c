@@ -311,12 +311,12 @@ int main(int argc, char *argv[]) {
         			//return -1;
         			i=-1;
         			send(s_conec, &i, sizeof(i), 0);
-
         			break;
 				}
-				// enviar si todo ok de momento o esta vacia o no existe 
-				i=0;
-				send(s_conec, &i, sizeof(i), 0);
+				// enviar si todo ok de momento o no existe , solo un envio aceptado cambiado el protocolo 
+				// envio -1 como tamanio si no existe la cola, 0 si esta vacia, y el tamanio + mensaje si hay datos
+				//i=0;
+				//send(s_conec, &i, sizeof(i), 0); 
 				// todo ok, enviar el mensaje y tamanio
 
 				struct pack * p;
@@ -328,7 +328,8 @@ int main(int argc, char *argv[]) {
    						struct iovec iov [1];
    						uint32_t empty = 0;
 
-   						iov[0].iov_base = &empty;
+
+   						iov[0].iov_base = &empty; 
 						iov[0].iov_len = sizeof(empty);
 
    						iovcnt = sizeof(iov) / sizeof(struct iovec);
@@ -339,7 +340,7 @@ int main(int argc, char *argv[]) {
         				perror("error en write put");
         				close(s);
 						close(s_conec);
-        				return 1;
+        				return -1;
     					}
     					break;
 				}

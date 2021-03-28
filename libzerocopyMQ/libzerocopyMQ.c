@@ -259,27 +259,12 @@ int get(const char *cola, void **mensaje, uint32_t *tam, bool blocking) {
         perror("error en write put");
         return 1;
     }
-    // existe?
-    int leido;
-    uint8_t correcto;
-    leido=recv(s,&correcto,sizeof(correcto),0);
     
-    if (leido<0) {// to be subtituted with a function to reduce size of code
-					perror("error: Could not read if there is a queue with that name");
-					close(s);
-					return -1;
-	}
-
-
-	if (correcto<0){
-		perror("problemas, no se ha encontrado la cola o no quedan mensajes\n");// hay que cambiarlo para diferenciar
-		close(s);
-		return -1;
-	}
 
 
 
-   
+
+    int leido;
     uint32_t msgSize;
     leido=recv(s,&msgSize,sizeof(msgSize),0);
 
@@ -287,6 +272,11 @@ int get(const char *cola, void **mensaje, uint32_t *tam, bool blocking) {
 					perror("error: Could not read the size of the queue");
 					close(s);
 					return -1;
+	}
+	if (msgSize<0){
+		perror("error:queue not found");
+		close(s);
+		return -1;
 	}
 	if(msgSize == 0){
 		if (!blocking)
@@ -306,10 +296,6 @@ int get(const char *cola, void **mensaje, uint32_t *tam, bool blocking) {
 					return -1;
 	}
 	* mensaje = msg; //  creo que mal porque estoy copiando los datos
-
-
-	printf("size mensaje en libreria:%u\n",*tam);
-	printf("mensaje en libreria:%d\n",*(int *)*mensaje);
 
     return 0;
 }
@@ -338,6 +324,6 @@ int brokerSetup(){
 		close(s);
 		return 1;
 	}
-	printf("Socket connection success\n");
+	//printf("Socket connection success\n");
 	return 0;
 }
