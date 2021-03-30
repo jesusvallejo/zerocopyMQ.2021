@@ -105,7 +105,7 @@ int main(int argc, char *argv[]) {
 				// now that we know the size of the queue we can allocate memory for it
 				char * nombre_cola;
 				nombre_cola = (char *) malloc(qSize);
-				leido=recv(s_conec,nombre_cola,qSize*sizeof(char),0);
+				leido=recv(s_conec,nombre_cola,qSize*sizeof(char),MSG_WAITALL);
 				//printf("Queue Name: %s\n",nombre_cola);
 
 				if (leido<0) {// to be subtituted with a function to reduce size of code
@@ -151,7 +151,7 @@ int main(int argc, char *argv[]) {
 				// now that we know the size of the queue we can allocate memory for it
 				char * nombre_cola;
 				nombre_cola = (char *) malloc(qSize);
-				leido=recv(s_conec,nombre_cola,qSize*sizeof(char),0);
+				leido=recv(s_conec,nombre_cola,qSize*sizeof(char),MSG_WAITALL);
 				//printf("Queue Name: %s\n",nombre_cola);
 
 				if (leido<0) {// to be subtituted with a function to reduce size of code
@@ -231,12 +231,12 @@ int main(int argc, char *argv[]) {
 				// now that we know the size of the queue we can allocate memory for it
 				char * nombre_cola;
 				nombre_cola = (char *) malloc(qSize);
-				leido=recv(s_conec,nombre_cola,qSize*sizeof(char),0);
+				leido=recv(s_conec,nombre_cola,qSize*sizeof(char),MSG_WAITALL);
 
 				// now that we know the size of the message we can allocate memory for it
 				void * msg;
 				msg = (void *) malloc(msgSize);
-				leido=recv(s_conec,msg,msgSize*sizeof(void),0);
+				leido=recv(s_conec,msg,msgSize*sizeof(void),MSG_WAITALL);
 
 				struct pack * p;
 				p = malloc(sizeof(struct pack));
@@ -270,8 +270,7 @@ int main(int argc, char *argv[]) {
         			break;
 				}
 
-				cola_push_back(cola,p);
-				//cola_visit(cola, imprime);
+				cola_push_back(cola,p); // send OK
 				i=0;
         		send(s_conec, &i, sizeof(i), 0);
 
@@ -281,7 +280,7 @@ int main(int argc, char *argv[]) {
 			case 3: // get
 			{
 				int error;
-				uint8_t i=0;
+				int i=0;
 				printf("get ");
 				uint16_t qSize;
 				leido=recv(s_conec,&qSize,sizeof(qSize),0);
@@ -295,7 +294,7 @@ int main(int argc, char *argv[]) {
 				// now that we know the size of the queue we can allocate memory for it
 				char * nombre_cola;
 				nombre_cola = (char *) malloc(qSize);
-				leido=recv(s_conec,nombre_cola,qSize*sizeof(char),0);
+				leido=recv(s_conec,nombre_cola,qSize*sizeof(char),MSG_WAITALL);
 
 				//printf("size cola:%d\n",qSize);
 				//printf("nombre_cola:%s\n",nombre_cola);
@@ -322,7 +321,7 @@ int main(int argc, char *argv[]) {
 				struct pack * p;
 				p = cola_pop_front(cola,&error);
 				if(error<0){
-						printf("no esta en la cola\n");
+						printf("cola vacia\n");
 						ssize_t bytes_written;
 						int iovcnt;
    						struct iovec iov [1];

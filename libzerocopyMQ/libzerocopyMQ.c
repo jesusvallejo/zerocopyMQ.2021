@@ -176,12 +176,11 @@ int put(const char *cola, const void *mensaje, uint32_t tam) {
 	iov[4].iov_base = mensaje;
 	iov[4].iov_len = sizeof(void)*tam;
 
-
 	iovcnt = sizeof(iov) / sizeof(struct iovec);
 	
 	if(brokerSetup()!=0){
 		perror("error: put");
-		return 1;
+		return -1;
 	}
 
 	/* Understanding that the queue struct is set send it, 
@@ -195,28 +194,26 @@ int put(const char *cola, const void *mensaje, uint32_t tam) {
     bytes_written= writev(s, iov, iovcnt);
     if (bytes_written<0) {
         perror("error en write put");
-        return 1;
+        return -1;
     }
   	int leido;
     uint8_t reply;
-    if ((leido=read(s, &reply, sizeof(reply)))<0) {
+    if ((leido=recv(s, &reply, sizeof(reply),0))<0) {
             perror("error en read put");
             close(s);
-            return 1;
+            return -1;
     }
-    if (reply==0){
-    	//printf("++ Put ++ - Returned 0 - OK\n");
     
-    	returned = 0;
-	}
-    else{
-    	//printf("++ Put ++ - Returned != 0 - NO OK\n");
-    	returned = -1;
-    }
-
     close(s);
-	return returned;
+    if (reply==0)
+    	//printf("++ Put ++ - Returned 0 - OK\n");
+    	return 0;
+    else
+    	//printf("++ Put ++ - Returned != 0 - NO OK\n");
+    	return -1;
 }
+	
+
 
 
 
@@ -257,13 +254,9 @@ int get(const char *cola, void **mensaje, uint32_t *tam, bool blocking) {
     bytes_written= writev(s, iov, iovcnt);
     if (bytes_written<0) {
         perror("error en write put");
-        return 1;
+        return -1;
     }
     
-
-
-
-
     int leido;
     uint32_t msgSize;
     leido=recv(s,&msgSize,sizeof(msgSize),0);
@@ -273,7 +266,7 @@ int get(const char *cola, void **mensaje, uint32_t *tam, bool blocking) {
 					close(s);
 					return -1;
 	}
-	if (msgSize<0){
+	if ((int)msgSize<0){
 		perror("error:queue not found");
 		close(s);
 		return -1;
@@ -288,7 +281,7 @@ int get(const char *cola, void **mensaje, uint32_t *tam, bool blocking) {
 	// now that we know the size of the message we can allocate memory for it
 	void * msg;
 	msg = (void *) malloc(msgSize);
-	leido=recv(s,msg,msgSize*sizeof(void),0);
+	leido=recv(s,msg,msgSize*sizeof(void),MSG_WAITALL);
 
 	if (leido<0) {// to be subtituted with a function to reduce size of code
 					perror("error: Could not read the size of the queue");
